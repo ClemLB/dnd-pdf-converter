@@ -2,6 +2,7 @@ logging:
     level:
         root: WARN
         fr.kuremento.dnd: DEBUG
+        org.springframework.context.support: ERROR
     pattern:
         console:
 
@@ -10,11 +11,8 @@ spring:
         name: '@project.name@'
     main:
         allow-bean-definition-overriding: true
-        banner-mode: off
-
 server:
     port: 8080
 
 application:
-    name: '@project.name@'
     version: '@project.version@'

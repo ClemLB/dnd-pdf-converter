@@ -35,7 +35,7 @@ public class BatchConfiguration {
         return new DataSourceTransactionManager(dataSource);
     }
 
-    @Bean
+    @Bean("dndJobRepository")
     public JobRepository jobRepository(DataSource dataSource, DataSourceTransactionManager transactionManager) throws Exception {
         var factory = new JobRepositoryFactoryBean();
         factory.setDatabaseType(DatabaseType.H2.getProductName());

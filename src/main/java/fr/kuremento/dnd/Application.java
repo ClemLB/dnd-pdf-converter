@@ -1,46 +1,44 @@
 package fr.kuremento.dnd;
 
+import lombok.AccessLevel;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.batch.core.*;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.core.env.Environment;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Optional;
+import org.springframework.context.ConfigurableApplicationContext;
 
 @Slf4j
 @SpringBootApplication
-public class Application {
+public class Application implements ExitCodeGenerator {
 
-    public static void main(String[] args) {
-        SpringApplication app = new SpringApplicationBuilder(Application.class).headless(true).build();
-        Environment env = app.run(args).getEnvironment();
-        logApplicationStartup(env);
+    @Setter(AccessLevel.PRIVATE)
+    private JobExecution jobExecution;
+
+    public static void main(String[] args) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
+        try (ConfigurableApplicationContext context = SpringApplication.run(Application.class, args)) {
+            var appBean = context.getBean(Application.class);
+            var job = context.getBean(Job.class);
+            var jobLauncher = context.getBean(JobLauncher.class);
+            var jobParameters = new JobParametersBuilder().addString("jobID", String.valueOf(System.currentTimeMillis())).toJobParameters();
+            appBean.setJobExecution(jobLauncher.run(job, jobParameters));
+            System.exit(SpringApplication.exit(context, appBean));
+        }
     }
 
-    private static void logApplicationStartup(Environment env) {
-        String protocol = Optional.ofNullable(env.getProperty("server.ssl.certificate")).map(key -> "https").orElse("http");
-        String serverPort = env.getProperty("server.port");
-        String contextPath = Optional.ofNullable(env.getProperty("server.servlet.context-path")).filter(StringUtils::isNotBlank).orElse("/");
-        String hostAddress = "localhost";
-        try {
-            hostAddress = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            log.warn("The host name could not be determined, using `localhost` as fallback");
+    @Override
+    public int getExitCode() {
+        var exitStatus = jobExecution.getExitStatus();
+        if (ExitStatus.FAILED.getExitCode().equals(exitStatus.getExitCode())) {
+            return 2;
+        } else if (new ExitStatus("COMPLETED_WITH_ERRORS").getExitCode().equals(exitStatus.getExitCode())) {
+            return 1;
         }
-        log.info("""
-                         
-                         ----------------------------------------------------------
-                         \tApplication '{}' is running! Access URLs:
-                         \tLocal: \t\t{}://localhost:{}{}
-                         \tExternal: \t{}://{}:{}{}
-                         \tVersion: \t{}
-                         \tProfile(s): \t{}
-                         ----------------------------------------------------------""", env.getProperty("application.name"), protocol, serverPort, contextPath,
-                 protocol, hostAddress, serverPort, contextPath, env.getProperty("application.version"),
-                 env.getActiveProfiles().length == 0 ? env.getDefaultProfiles() : env.getActiveProfiles());
+        return 0;
     }
 }
