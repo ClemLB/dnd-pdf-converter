@@ -1,0 +1,3 @@
+logging:
+    pattern:
+        console: '%d{yyyy-MM-dd HH:mm:ss.SSS}|%green(%-5level)|%cyan(%-36logger{36})|%msg%n'
