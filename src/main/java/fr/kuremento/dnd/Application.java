@@ -1,5 +1,6 @@
 package fr.kuremento.dnd;
 
+import fr.kuremento.dnd.model.Constantes;
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +22,17 @@ public class Application implements ExitCodeGenerator {
     private JobExecution jobExecution;
 
     public static void main(String[] args) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
+        if (args.length == 0) {
+            log.error("Merci d'indiquer un fichier PDF en entrée");
+            System.exit(1);
+        }
         try (ConfigurableApplicationContext context = SpringApplication.run(Application.class, args)) {
             var appBean = context.getBean(Application.class);
             var job = context.getBean(Job.class);
             var jobLauncher = context.getBean(JobLauncher.class);
-            var jobParameters = new JobParametersBuilder().addString("jobID", String.valueOf(System.currentTimeMillis())).toJobParameters();
+            var jobParameters = new JobParametersBuilder().addString(Constantes.JobParameters.ID, String.valueOf(System.currentTimeMillis()))
+                                                          .addString(Constantes.JobParameters.INPUT_FILE, args[args.length - 1])
+                                                          .toJobParameters();
             appBean.setJobExecution(jobLauncher.run(job, jobParameters));
             System.exit(SpringApplication.exit(context, appBean));
         }

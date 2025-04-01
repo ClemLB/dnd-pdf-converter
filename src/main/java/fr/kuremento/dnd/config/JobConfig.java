@@ -1,6 +1,7 @@
 package fr.kuremento.dnd.config;
 
 import fr.kuremento.dnd.listener.JobCompletionListener;
+import fr.kuremento.dnd.listener.StepCompletionListener;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -24,15 +25,41 @@ public class JobConfig extends DefaultBatchConfiguration {
     /**
      * Job :
      * <ol>
+     * <li>traitement du fichier PDF</li>
      * <li>bilan du traitement</li>
      * </ol>
      *
-     * @param listener  listener commun aux jobs
-     * @param bilanStep étape de bilan pour de la supervision
+     * @param listener    listener commun aux jobs
+     * @param readPdfStep étape de traitement du fichier PDF d'entrée
+     * @param bilanStep   étape de bilan pour de la supervision
      */
     @Bean
-    public Job job(JobCompletionListener listener, @Qualifier("bilanStep") Step bilanStep) {
-        return new JobBuilder("traitement", jobRepository).listener(listener).start(bilanStep).build();
+    public Job job(JobCompletionListener listener,
+                   @Qualifier("readPdfStep") Step readPdfStep,
+                   @Qualifier("convertCategoriesStep") Step convertCategoriesStep,
+                   @Qualifier("writePdfStep") Step writePdfStep,
+                   @Qualifier("bilanStep") Step bilanStep) {
+        return new JobBuilder("traitement", jobRepository).listener(listener)
+                                                          .start(readPdfStep)
+                                                          .next(convertCategoriesStep)
+                                                          .next(writePdfStep)
+                                                          .next(bilanStep)
+                                                          .build();
+    }
+
+    @Bean("readPdfStep")
+    public Step readPdf(StepCompletionListener listener, @Qualifier("readPdfTasklet") Tasklet tasklet) {
+        return new StepBuilder("lecture du pdf anglais", jobRepository).listener(listener).tasklet(tasklet, transactionManager).build();
+    }
+
+    @Bean("convertCategoriesStep")
+    public Step convertCategories(StepCompletionListener listener, @Qualifier("convertCategoriesTasklet") Tasklet tasklet) {
+        return new StepBuilder("conversion des catégories", jobRepository).listener(listener).tasklet(tasklet, transactionManager).build();
+    }
+
+    @Bean("writePdfStep")
+    public Step writePdf(StepCompletionListener listener, @Qualifier("writePdfTasklet") Tasklet tasklet) {
+        return new StepBuilder("écriture du pdf français", jobRepository).listener(listener).tasklet(tasklet, transactionManager).build();
     }
 
     @Bean("bilanStep")

@@ -15,4 +15,6 @@ server:
     port: 8080
 
 application:
+    file:
+        output-file: "classpath:input-français.pdf"
     version: '@project.version@'
