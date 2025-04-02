@@ -9,6 +9,9 @@ logging:
 spring:
     application:
         name: '@project.name@'
+    jpa:
+        hibernate:
+            ddl-auto: none
     main:
         allow-bean-definition-overriding: true
 server:

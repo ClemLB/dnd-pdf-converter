@@ -25,26 +25,22 @@ public class JobConfig extends DefaultBatchConfiguration {
     /**
      * Job :
      * <ol>
-     * <li>traitement du fichier PDF</li>
-     * <li>bilan du traitement</li>
+     * <li>Lecture du fichier PDF</li>
+     * <li>Mapping des catégories</li>
+     * <li>Écriture d'un nouveau fichier PDF</li>
      * </ol>
      *
-     * @param listener    listener commun aux jobs
-     * @param readPdfStep étape de traitement du fichier PDF d'entrée
-     * @param bilanStep   étape de bilan pour de la supervision
+     * @param listener              listener commun aux jobs
+     * @param readPdfStep           étape de lecture du fichier PDF d'entrée
+     * @param convertCategoriesStep étape de traitement des catégories
+     * @param writePdfStep          étape d'écriture du fichier PDF de sortie
      */
     @Bean
     public Job job(JobCompletionListener listener,
                    @Qualifier("readPdfStep") Step readPdfStep,
                    @Qualifier("convertCategoriesStep") Step convertCategoriesStep,
-                   @Qualifier("writePdfStep") Step writePdfStep,
-                   @Qualifier("bilanStep") Step bilanStep) {
-        return new JobBuilder("traitement", jobRepository).listener(listener)
-                                                          .start(readPdfStep)
-                                                          .next(convertCategoriesStep)
-                                                          .next(writePdfStep)
-                                                          .next(bilanStep)
-                                                          .build();
+                   @Qualifier("writePdfStep") Step writePdfStep) {
+        return new JobBuilder("traitement", jobRepository).listener(listener).start(readPdfStep).next(convertCategoriesStep).next(writePdfStep).build();
     }
 
     @Bean("readPdfStep")
@@ -62,8 +58,4 @@ public class JobConfig extends DefaultBatchConfiguration {
         return new StepBuilder("écriture du pdf français", jobRepository).listener(listener).tasklet(tasklet, transactionManager).build();
     }
 
-    @Bean("bilanStep")
-    public Step bilan(@Qualifier("bilanTasklet") Tasklet tasklet) {
-        return new StepBuilder("bilan", jobRepository).tasklet(tasklet, transactionManager).build();
-    }
 }
