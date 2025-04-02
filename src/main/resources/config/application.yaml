@@ -13,6 +13,8 @@ spring:
     main:
         allow-bean-definition-overriding: true
     shell:
+        config:
+            location: classpath:logback-off.xml
         noninteractive:
             primary-command: convert
 

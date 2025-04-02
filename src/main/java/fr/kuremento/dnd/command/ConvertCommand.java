@@ -28,8 +28,7 @@ public class ConvertCommand {
                                                              .addString(Constantes.JobParameters.INPUT_FILE, inputFile);
         var jobExecution = jobLauncher.run(job, jobParametersBuilder.toJobParameters());
         if (!ExitStatus.COMPLETED.getExitCode().equals(jobExecution.getExitStatus().getExitCode())) {
-            return "Une erreur est survenue lors de la conversion : " +
-                   jobExecution.getAllFailureExceptions().stream().map(Throwable::getMessage).collect(Collectors.joining(", "));
+            return "Une erreur est survenue lors de la conversion.";
         } else {
             return "Le PDF '" + inputFile + "' a bien été converti.";
         }
