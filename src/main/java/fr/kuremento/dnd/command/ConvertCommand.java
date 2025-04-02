@@ -2,6 +2,7 @@ package fr.kuremento.dnd.command;
 
 import fr.kuremento.dnd.model.Constantes;
 import lombok.RequiredArgsConstructor;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -23,6 +24,11 @@ public class ConvertCommand {
     public String convert(@Option(longNames = "input-file", description = "Chemin vers la fiche de personnage anglaise", required = true) String inputFile) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
         var jobParametersBuilder = new JobParametersBuilder().addString(Constantes.JobParameters.ID, String.valueOf(System.currentTimeMillis()))
                                                              .addString(Constantes.JobParameters.INPUT_FILE, inputFile);
-        return jobLauncher.run(job, jobParametersBuilder.toJobParameters()).getExitStatus().getExitDescription();
+        var jobExecution = jobLauncher.run(job, jobParametersBuilder.toJobParameters());
+        if (!ExitStatus.COMPLETED.getExitCode().equals(jobExecution.getExitStatus().getExitCode())) {
+            return "Une erreur est survenue lors de la conversion : " + jobExecution.getAllFailureExceptions();
+        } else {
+            return "Le PDF " + inputFile + " a bien été converti.";
+        }
     }
 }
