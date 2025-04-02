@@ -54,6 +54,7 @@ public class WritePdfTasklet implements Tasklet {
                 if (StringUtils.isNotBlank(category.categoryValue())) {
                     if (category.isCheckBox()) {
                         dictionary.setItem(COSName.AS, COSName.YES);
+                        dictionary.setItem(COSName.V, COSName.YES);
                     } else {
                         dictionary.setItem(COSName.V, new COSString(category.categoryValue()));
                     }
