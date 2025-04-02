@@ -20,9 +20,9 @@ public class ConvertCommand {
     private final JobLauncher jobLauncher;
 
     @Command(command = "convert", description = "Convert an english PDF from dndbeyond.com to a french one", alias = "c")
-    public void convert(@Option(longNames = "input-file", description = "Chemin vers la fiche de personnage anglaise", required = true) String inputFile) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
+    public String convert(@Option(longNames = "input-file", description = "Chemin vers la fiche de personnage anglaise", required = true) String inputFile) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
         var jobParametersBuilder = new JobParametersBuilder().addString(Constantes.JobParameters.ID, String.valueOf(System.currentTimeMillis()))
                                                              .addString(Constantes.JobParameters.INPUT_FILE, inputFile);
-        jobLauncher.run(job, jobParametersBuilder.toJobParameters());
+        return jobLauncher.run(job, jobParametersBuilder.toJobParameters()).getExitStatus().getExitDescription();
     }
 }
