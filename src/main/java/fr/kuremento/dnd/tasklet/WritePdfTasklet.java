@@ -40,7 +40,7 @@ public class WritePdfTasklet implements Tasklet {
         List<FichePersonnageCategorie> categories = (List<FichePersonnageCategorie>) chunkContext.getStepContext()
                                                                                                  .getJobExecutionContext()
                                                                                                  .get(Constantes.JobContext.CATEGORIES);
-        PDDocument document = Loader.loadPDF(inputEmptyFile.getFile().getAbsoluteFile());
+        PDDocument document = Loader.loadPDF(inputEmptyFile.getContentAsByteArray());
         for (PDPage page : document.getPages()) {
             page.getAnnotations().stream().map(PDAnnotation::getCOSObject).forEach(dictionary -> {
                 String categoryName = dictionary.getString("T");
@@ -61,11 +61,10 @@ public class WritePdfTasklet implements Tasklet {
 
             });
         }
-        File inputFile = new File(String.valueOf(chunkContext.getStepContext().getJobParameters().get(Constantes.JobParameters.INPUT_FILE)));
-        File outputFile = new File(String.valueOf(chunkContext.getStepContext()
-                                                              .getJobParameters()
-                                                              .getOrDefault(Constantes.JobParameters.OUTPUT_FILE,
-                                                                            inputFile.getParentFile().getAbsolutePath())), "Fiche de personnage.pdf");
+
+        File outputFile = new File(
+                new File(String.valueOf(chunkContext.getStepContext().getJobParameters().get(Constantes.JobParameters.INPUT_FILE))).getParentFile(),
+                "Fiche de personnage.pdf");
 
         document.save(outputFile);
         document.close();
