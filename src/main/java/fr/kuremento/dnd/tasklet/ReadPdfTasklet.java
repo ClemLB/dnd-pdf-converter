@@ -45,10 +45,9 @@ public class ReadPdfTasklet implements Tasklet, StepExecutionListener {
                 page.getAnnotations().stream().map(PDAnnotation::getCOSObject).forEach(dictionary -> {
                     String categoryName = dictionary.getString("T");
                     String categoryValue = dictionary.getString("V");
-                    categories.add(new FichePersonnageCategorie(categoryName, categoryValue));
+                    categories.add(new FichePersonnageCategorie(categoryName, categoryValue, false));
                 });
             }
-            log.info(categories.toString());
         }
         document.close();
         return RepeatStatus.FINISHED;

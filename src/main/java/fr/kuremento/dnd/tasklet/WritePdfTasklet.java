@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -43,17 +44,21 @@ public class WritePdfTasklet implements Tasklet {
         for (PDPage page : document.getPages()) {
             page.getAnnotations().stream().map(PDAnnotation::getCOSObject).forEach(dictionary -> {
                 String categoryName = dictionary.getString("T");
-                String categoryValue = categories.stream()
-                                                 .filter(category -> categoryName.equals(category.categoryName()))
+                FichePersonnageCategorie category = categories.stream()
+                                                 .filter(lambdaCategory -> categoryName.equals(lambdaCategory.categoryName()))
                                                  .findAny()
-                                                 .orElse(new FichePersonnageCategorie(categoryName, ""))
-                                                 .categoryValue();
+                                                 .orElse(new FichePersonnageCategorie(categoryName, "", false));
                 if(!categories.stream().map(FichePersonnageCategorie::categoryName).toList().contains(categoryName)) {
                     log.warn("{}", categoryName);
                 }
-                if (StringUtils.isNotBlank(categoryValue)) {
-                    dictionary.setItem("V", new COSString(categoryValue));
+                if (StringUtils.isNotBlank(category.categoryValue())) {
+                    if(category.isCheckBox()) {
+                        dictionary.setItem(COSName.AS, COSName.YES);
+                    } else {
+                        dictionary.setItem(COSName.V, new COSString(category.categoryValue()));
+                    }
                 }
+
             });
         }
         document.save(new File("output.pdf"));

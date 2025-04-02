@@ -2,6 +2,8 @@ package fr.kuremento.dnd.tasklet;
 
 import fr.kuremento.dnd.model.Constantes;
 import fr.kuremento.dnd.model.FichePersonnageCategorie;
+import fr.kuremento.dnd.model.data.DataMapping;
+import fr.kuremento.dnd.repository.MappingRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,17 +18,18 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
- * Service de lecture d'un fichier PDF
+ * Service de conversion des catégories
  */
 @Slf4j
-@Component("convertCategoriesTasklet")
 @RequiredArgsConstructor
+@Component("convertCategoriesTasklet")
 public class ConvertCategoriesTasklet implements Tasklet, StepExecutionListener {
 
+    private final MappingRepository mappingRepository;
     private List<FichePersonnageCategorie> categories;
 
     @Override
@@ -34,38 +37,18 @@ public class ConvertCategoriesTasklet implements Tasklet, StepExecutionListener 
         List<FichePersonnageCategorie> list = (List<FichePersonnageCategorie>) chunkContext.getStepContext()
                                                                                            .getJobExecutionContext()
                                                                                            .get(Constantes.JobContext.CATEGORIES);
-        categories = list.stream().map(this::mapCategories).toList();
+        categories = list.stream().flatMap(this::mapCategory).toList();
         return RepeatStatus.FINISHED;
     }
 
-    private FichePersonnageCategorie mapCategories(FichePersonnageCategorie fichePersonnageCategorie) {
-        String categoryName = fichePersonnageCategorie.categoryName();
-        String newCategoryName = switch (categoryName) {
-            case "CLASS  LEVEL" -> "ClassLevel";
-            case "PLAYER NAME" -> "PlayerName";
-            case "RACE" -> "Race ";
-            case "BACKGROUND" -> "Background";
-            case "EXPERIENCE POINTS" -> "XP";
-            case "CHamod" -> "CHAmod";
-            case "Acrobatics" -> "Acrobaties";
-            case "MaxHP" -> "HPMax";
-            case "CurrentHP" -> "HPCurrent";
-            case "TempHP" -> "HPTemp";
-            case "Arcana" -> "Arcanes";
-            case "Athletics" -> "Athlétisme";
-            case "Animal" -> "Dressage";
-            case "Stealth " -> "Discrétion";
-            case "SleightofHand" -> "Escamotage";
-            case "History" -> "Histoire";
-            case "Insight" -> "Intuition";
-            case "Medicine" -> "Médecine";
-            case "Performance" -> "Représentation";
-            case "Deception" -> "Tromperie";
-            case "Survival" -> "Survie";
-            case "Init" -> "Initiative";
-            default -> categoryName;
-        };
-        return new FichePersonnageCategorie(newCategoryName, fichePersonnageCategorie.categoryValue());
+    private Stream<FichePersonnageCategorie> mapCategory(FichePersonnageCategorie categorie) {
+        List<DataMapping> dataMappings = mappingRepository.findByEnglishCategory(categorie.categoryName());
+        if (dataMappings.isEmpty()) {
+            return Stream.of(categorie);
+        }
+        return dataMappings.stream()
+                           .map(dataMapping -> new FichePersonnageCategorie(dataMapping.getFrenchCategory(), categorie.categoryValue(),
+                                                                            dataMapping.isCheckBox()));
     }
 
     @Override
@@ -77,7 +60,7 @@ public class ConvertCategoriesTasklet implements Tasklet, StepExecutionListener 
             log.debug("Mise à jour de {} catégories", categories.size());
             return ExitStatus.COMPLETED;
         } else {
-            return ExitStatus.FAILED.addExitDescription("Erreur lors de la lecture du PDF");
+            return ExitStatus.FAILED.addExitDescription("Erreur lors de la conversion du nom des catégories");
         }
     }
 }

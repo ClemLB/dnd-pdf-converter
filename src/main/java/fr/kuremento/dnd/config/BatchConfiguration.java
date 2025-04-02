@@ -26,6 +26,7 @@ public class BatchConfiguration {
     public DataSource dataSource() {
         return new EmbeddedDatabaseBuilder().addScript("classpath:org/springframework/batch/core/schema-drop-h2.sql")
                                             .addScript("classpath:org/springframework/batch/core/schema-h2.sql")
+                                            .addScript("classpath:sql/mapping.sql")
                                             .setType(EmbeddedDatabaseType.H2)
                                             .build();
     }
