@@ -59,7 +59,6 @@ public class ReadPdfTasklet implements Tasklet, StepExecutionListener {
         if (!categories.isEmpty()) {
             ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
             jobContext.put(Constantes.JobContext.CATEGORIES, categories);
-            log.debug("Lecture de {} catégories", categories.size());
             return ExitStatus.COMPLETED;
         } else {
             return ExitStatus.FAILED.addExitDescription("Erreur lors de la lecture du PDF");

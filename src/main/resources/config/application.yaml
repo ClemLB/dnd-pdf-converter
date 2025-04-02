@@ -12,10 +12,14 @@ spring:
             ddl-auto: none
     main:
         allow-bean-definition-overriding: true
+    shell:
+        noninteractive:
+            primary-command: convert
+
 server:
     port: 8080
 
 application:
     file:
-        output-file: "classpath:input-français.pdf"
+        input-empty-file: "classpath:data/input-français.pdf"
     version: '@project.version@'

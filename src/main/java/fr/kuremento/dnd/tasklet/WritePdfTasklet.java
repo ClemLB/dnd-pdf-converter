@@ -32,27 +32,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WritePdfTasklet implements Tasklet {
 
-    @Value("${application.file.output-file}")
-    private final Resource outputFile;
+    @Value("${application.file.input-empty-file}")
+    private final Resource inputEmptyFile;
 
     @Override
     public RepeatStatus execute(@NonNull StepContribution contribution, ChunkContext chunkContext) throws IOException {
         List<FichePersonnageCategorie> categories = (List<FichePersonnageCategorie>) chunkContext.getStepContext()
                                                                                                  .getJobExecutionContext()
                                                                                                  .get(Constantes.JobContext.CATEGORIES);
-        PDDocument document = Loader.loadPDF(outputFile.getFile().getAbsoluteFile());
+        PDDocument document = Loader.loadPDF(inputEmptyFile.getFile().getAbsoluteFile());
         for (PDPage page : document.getPages()) {
             page.getAnnotations().stream().map(PDAnnotation::getCOSObject).forEach(dictionary -> {
                 String categoryName = dictionary.getString("T");
                 FichePersonnageCategorie category = categories.stream()
-                                                 .filter(lambdaCategory -> categoryName.equals(lambdaCategory.categoryName()))
-                                                 .findAny()
-                                                 .orElse(new FichePersonnageCategorie(categoryName, "", false));
-                if(!categories.stream().map(FichePersonnageCategorie::categoryName).toList().contains(categoryName)) {
+                                                              .filter(lambdaCategory -> categoryName.equals(lambdaCategory.categoryName()))
+                                                              .findAny()
+                                                              .orElse(new FichePersonnageCategorie(categoryName, "", false));
+                if (!categories.stream().map(FichePersonnageCategorie::categoryName).toList().contains(categoryName)) {
                     log.warn("{}", categoryName);
                 }
                 if (StringUtils.isNotBlank(category.categoryValue())) {
-                    if(category.isCheckBox()) {
+                    if (category.isCheckBox()) {
                         dictionary.setItem(COSName.AS, COSName.YES);
                     } else {
                         dictionary.setItem(COSName.V, new COSString(category.categoryValue()));
@@ -61,7 +61,13 @@ public class WritePdfTasklet implements Tasklet {
 
             });
         }
-        document.save(new File("output.pdf"));
+        File inputFile = new File(String.valueOf(chunkContext.getStepContext().getJobParameters().get(Constantes.JobParameters.INPUT_FILE)));
+        File outputFile = new File(String.valueOf(chunkContext.getStepContext()
+                                                              .getJobParameters()
+                                                              .getOrDefault(Constantes.JobParameters.OUTPUT_FILE,
+                                                                            inputFile.getParentFile().getAbsolutePath())), "Fiche de personnage.pdf");
+
+        document.save(outputFile);
         document.close();
         return RepeatStatus.FINISHED;
     }
