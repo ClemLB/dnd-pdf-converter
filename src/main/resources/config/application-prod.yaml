@@ -1,7 +1,3 @@
 logging:
     pattern:
         console: '%d{yyyy-MM-dd HH:mm:ss.SSS}|%-5level|%-36logger{36}|%msg%n'
-server:
-    ssl:
-        certificate: "/keys/fullchain.pem"
-        certificate-private-key: "/keys/privkey.pem"

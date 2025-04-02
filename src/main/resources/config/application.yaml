@@ -3,8 +3,6 @@ logging:
         root: WARN
         fr.kuremento.dnd: DEBUG
         org.springframework.context.support: ERROR
-    pattern:
-        console:
 
 spring:
     application:
