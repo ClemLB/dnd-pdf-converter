@@ -13,6 +13,8 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 
+import java.util.stream.Collectors;
+
 @Command
 @RequiredArgsConstructor
 public class ConvertCommand {
@@ -26,9 +28,10 @@ public class ConvertCommand {
                                                              .addString(Constantes.JobParameters.INPUT_FILE, inputFile);
         var jobExecution = jobLauncher.run(job, jobParametersBuilder.toJobParameters());
         if (!ExitStatus.COMPLETED.getExitCode().equals(jobExecution.getExitStatus().getExitCode())) {
-            return "Une erreur est survenue lors de la conversion : " + jobExecution.getAllFailureExceptions();
+            return "Une erreur est survenue lors de la conversion : " +
+                   jobExecution.getAllFailureExceptions().stream().map(Throwable::getMessage).collect(Collectors.joining(", "));
         } else {
-            return "Le PDF " + inputFile + " a bien été converti.";
+            return "Le PDF '" + inputFile + "' a bien été converti.";
         }
     }
 }
