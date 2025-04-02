@@ -4,9 +4,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.kuremento</groupId>
-    <artifactId>dnd-pdf-manager</artifactId>
+    <artifactId>dnd-pdf-converter</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>dnd-pdf-manager</name>
+    <name>dnd-pdf-converter</name>
 
     <parent>
         <groupId>org.springframework.boot</groupId>

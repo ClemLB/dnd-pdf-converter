@@ -1,7 +1,7 @@
 void setBuildStatus(String message, String state) {
   step([
       $class: "GitHubCommitStatusSetter",
-      reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/ClemLB/dnd-pdf-manager"],
+      reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/ClemLB/dnd-pdf-converter"],
       contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/build-status"],
       errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
       statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
@@ -71,7 +71,7 @@ pipeline {
 					pom = readMavenPom file: 'pom.xml'
 					currentVersion = pom.getVersion()
 					currentBuild.displayName = "#"+env.BUILD_ID + " - " + currentVersion
-					customImage = docker.build("astrofia-app/dnd-pdf-manager")
+					customImage = docker.build("clementleborgne/dnd-pdf-converter")
                 }
 			}
 		}
@@ -83,7 +83,7 @@ pipeline {
 			}
 			steps {
 			    script {
-                    docker.withRegistry("https://astrofia-app.ddns.net:5001", "DOCKER_REGISTRY_CREDENTIALS") {
+                    docker.withRegistry("https://registry.hub.docker.com", "DOCKER_HUB_CREDENTIALS") {
                         customImage.push(currentVersion)
                         customImage.push("latest")
                     }
