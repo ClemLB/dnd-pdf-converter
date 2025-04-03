@@ -11,15 +11,16 @@ import lombok.extern.slf4j.Slf4j;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@IdClass(MappingId.class)
 @Table(schema = "dnd", name = "mapping", uniqueConstraints = {@UniqueConstraint(columnNames = {"ENGLISH_CATEGORY", "FRENCH_CATEGORY"})})
 public class DataMapping {
 
     @Id
+    @Column(name = "MAPPING_ID")
+    private Long mappingId;
+
     @Column(name = "ENGLISH_CATEGORY")
     private String englishCategory;
 
-    @Id
     @Column(name = "FRENCH_CATEGORY")
     private String frenchCategory;
 

@@ -39,8 +39,14 @@ public class JobConfig extends DefaultBatchConfiguration {
     public Job job(JobCompletionListener listener,
                    @Qualifier("readPdfStep") Step readPdfStep,
                    @Qualifier("convertCategoriesStep") Step convertCategoriesStep,
+                   @Qualifier("translationStep") Step translationStep,
                    @Qualifier("writePdfStep") Step writePdfStep) {
-        return new JobBuilder("traitement", jobRepository).listener(listener).start(readPdfStep).next(convertCategoriesStep).next(writePdfStep).build();
+        return new JobBuilder("traitement", jobRepository).listener(listener)
+                                                          .start(readPdfStep)
+                                                          .next(convertCategoriesStep)
+                                                          .next(translationStep)
+                                                          .next(writePdfStep)
+                                                          .build();
     }
 
     @Bean("readPdfStep")
@@ -51,6 +57,11 @@ public class JobConfig extends DefaultBatchConfiguration {
     @Bean("convertCategoriesStep")
     public Step convertCategories(StepCompletionListener listener, @Qualifier("convertCategoriesTasklet") Tasklet tasklet) {
         return new StepBuilder("conversion des catégories", jobRepository).listener(listener).tasklet(tasklet, transactionManager).build();
+    }
+
+    @Bean("translationStep")
+    public Step translate(StepCompletionListener listener, @Qualifier("translateTasklet") Tasklet tasklet) {
+        return new StepBuilder("traduction", jobRepository).listener(listener).tasklet(tasklet, transactionManager).build();
     }
 
     @Bean("writePdfStep")
