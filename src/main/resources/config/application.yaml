@@ -14,7 +14,7 @@ spring:
         allow-bean-definition-overriding: true
     shell:
         noninteractive:
-            primary-command: convert
+            primary-command: translate
         history:
             enabled: false
 

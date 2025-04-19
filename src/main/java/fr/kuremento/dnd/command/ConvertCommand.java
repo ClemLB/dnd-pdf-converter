@@ -13,8 +13,6 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 
-import java.util.stream.Collectors;
-
 @Command
 @RequiredArgsConstructor
 public class ConvertCommand {
@@ -22,8 +20,8 @@ public class ConvertCommand {
     private final Job job;
     private final JobLauncher jobLauncher;
 
-    @Command(command = "convert", description = "Convert an english PDF from dndbeyond.com to a french one", alias = "c")
-    public String convert(@Option(longNames = "input-file", description = "Chemin vers la fiche de personnage anglaise", required = true) String inputFile) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
+    @Command(command = "translate", description = "Convert an english PDF from dndbeyond.com to a french one", alias = "c")
+    public String translate(@Option(longNames = "input-file", description = "Chemin vers la fiche de personnage anglaise", required = true) String inputFile) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
         var jobParametersBuilder = new JobParametersBuilder().addString(Constantes.JobParameters.ID, String.valueOf(System.currentTimeMillis()))
                                                              .addString(Constantes.JobParameters.INPUT_FILE, inputFile);
         var jobExecution = jobLauncher.run(job, jobParametersBuilder.toJobParameters());
