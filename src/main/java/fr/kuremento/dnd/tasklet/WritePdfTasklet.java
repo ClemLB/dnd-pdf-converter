@@ -1,6 +1,7 @@
 package fr.kuremento.dnd.tasklet;
 
 import fr.kuremento.dnd.model.Constantes;
+import fr.kuremento.dnd.model.DnDClass;
 import fr.kuremento.dnd.model.FichePersonnageCategorie;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service de lecture d'un fichier PDF
@@ -34,16 +36,30 @@ public class WritePdfTasklet implements Tasklet {
 
     @Value("${application.file.input-empty-file}")
     private final Resource inputEmptyFile;
+    @Value("${application.file.input-file.bard}")
+    private final Resource inputBardFile;
 
     @Override
     public RepeatStatus execute(@NonNull StepContribution contribution, ChunkContext chunkContext) throws IOException {
         List<FichePersonnageCategorie> categories = (List<FichePersonnageCategorie>) chunkContext.getStepContext()
                                                                                                  .getJobExecutionContext()
                                                                                                  .get(Constantes.JobContext.CATEGORIES);
-        PDDocument document = Loader.loadPDF(inputEmptyFile.getContentAsByteArray());
+        Optional<DnDClass> optionalClass = Optional.ofNullable(chunkContext.getStepContext().getJobExecutionContext().get(Constantes.JobContext.CLASS))
+                                                   .map(String::valueOf)
+                                                   .map(DnDClass::valueOf);
+        byte[] data;
+        if (optionalClass.isEmpty()) {
+            data = inputEmptyFile.getContentAsByteArray();
+        } else {
+            data = switch (optionalClass.get()) {
+                case BARBARIAN, CLERIC, DRUID, FIGHTER, MONK, PALADIN, RANGER, ROGUE, SORCERER, WARLOCK, WIZARD -> null;
+                case BARD -> inputBardFile.getContentAsByteArray();
+            };
+        }
+        PDDocument document = Loader.loadPDF(data);
         for (PDPage page : document.getPages()) {
-            page.getAnnotations().stream().map(PDAnnotation::getCOSObject).forEach(dictionary -> {
-                String categoryName = dictionary.getString("T");
+            page.getAnnotations().stream().map(PDAnnotation::getCOSObject).filter(cosDictionary -> cosDictionary.containsKey(COSName.T)).forEach(dictionary -> {
+                String categoryName = dictionary.getString(COSName.T);
                 FichePersonnageCategorie category = categories.stream()
                                                               .filter(lambdaCategory -> categoryName.equals(lambdaCategory.categoryName()))
                                                               .findAny()

@@ -13,8 +13,6 @@ spring:
     main:
         allow-bean-definition-overriding: true
     shell:
-        noninteractive:
-            primary-command: translate
         history:
             enabled: false
 
@@ -24,4 +22,6 @@ server:
 application:
     file:
         input-empty-file: "classpath:data/input.pdf"
+        input-file:
+            bard: "classpath:data/bard.pdf"
     version: '@project.version@'

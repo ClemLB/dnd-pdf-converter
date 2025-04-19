@@ -20,7 +20,7 @@ public class DataTranslation {
 
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID", nullable = false, referencedColumnName = "MAPPING_ID")
-    private DataMapping mapping;
+    private DataMappingFrench mapping;
 
     @Column(name = "ENGLISH_VALUE")
     private String englishValue;

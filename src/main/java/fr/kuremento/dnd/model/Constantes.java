@@ -9,12 +9,12 @@ public class Constantes {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class JobContext {
         public static final String CATEGORIES = "categories";
+        public static final String CLASS = "class";
     }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class JobParameters {
         public static final String INPUT_FILE = "inputFile";
-        public static final String OUTPUT_FILE = "outputFile";
         public static final String ID = "jobID";
     }
 }

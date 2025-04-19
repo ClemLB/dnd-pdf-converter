@@ -10,6 +10,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 
@@ -17,14 +18,29 @@ import org.springframework.shell.command.annotation.Option;
 @RequiredArgsConstructor
 public class ConvertCommand {
 
-    private final Job job;
+    @Qualifier("traduction")
+    private final Job jobTraduction;
+    @Qualifier("conversion")
+    private final Job jobConversion;
     private final JobLauncher jobLauncher;
 
-    @Command(command = "translate", description = "Convert an english PDF from dndbeyond.com to a french one", alias = "c")
+    @Command(command = "translate", description = "Convert an english PDF from dndbeyond.com to a french one", alias = "t")
     public String translate(@Option(longNames = "input-file", description = "Chemin vers la fiche de personnage anglaise", required = true) String inputFile) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
         var jobParametersBuilder = new JobParametersBuilder().addString(Constantes.JobParameters.ID, String.valueOf(System.currentTimeMillis()))
                                                              .addString(Constantes.JobParameters.INPUT_FILE, inputFile);
-        var jobExecution = jobLauncher.run(job, jobParametersBuilder.toJobParameters());
+        var jobExecution = jobLauncher.run(jobTraduction, jobParametersBuilder.toJobParameters());
+        if (!ExitStatus.COMPLETED.getExitCode().equals(jobExecution.getExitStatus().getExitCode())) {
+            return "Une erreur est survenue lors de la conversion.";
+        } else {
+            return "Le PDF '" + inputFile + "' a bien été converti.";
+        }
+    }
+
+    @Command(command = "convert", description = "Convert an english PDF from dndbeyond.com", alias = "c")
+    public String convert(@Option(longNames = "input-file", description = "Chemin vers la fiche de personnage anglaise", required = true) String inputFile) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
+        var jobParametersBuilder = new JobParametersBuilder().addString(Constantes.JobParameters.ID, String.valueOf(System.currentTimeMillis()))
+                                                             .addString(Constantes.JobParameters.INPUT_FILE, inputFile);
+        var jobExecution = jobLauncher.run(jobConversion, jobParametersBuilder.toJobParameters());
         if (!ExitStatus.COMPLETED.getExitCode().equals(jobExecution.getExitStatus().getExitCode())) {
             return "Une erreur est survenue lors de la conversion.";
         } else {

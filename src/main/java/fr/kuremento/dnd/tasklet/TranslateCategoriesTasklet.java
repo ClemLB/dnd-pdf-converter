@@ -2,12 +2,11 @@ package fr.kuremento.dnd.tasklet;
 
 import fr.kuremento.dnd.model.Constantes;
 import fr.kuremento.dnd.model.FichePersonnageCategorie;
-import fr.kuremento.dnd.model.data.DataMapping;
-import fr.kuremento.dnd.repository.MappingRepository;
+import fr.kuremento.dnd.model.data.DataMappingFrench;
+import fr.kuremento.dnd.repository.MappingFrenchRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
@@ -23,14 +22,14 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Service de conversion des catégories
+ * Service de traduction des catégories
  */
 @Slf4j
 @RequiredArgsConstructor
-@Component("convertCategoriesTasklet")
-public class ConvertCategoriesTasklet implements Tasklet, StepExecutionListener {
+@Component("translateCategoriesTasklet")
+public class TranslateCategoriesTasklet implements Tasklet, StepExecutionListener {
 
-    private final MappingRepository mappingRepository;
+    private final MappingFrenchRepository mappingFrenchRepository;
     private List<FichePersonnageCategorie> categories;
 
     @Override
@@ -43,17 +42,13 @@ public class ConvertCategoriesTasklet implements Tasklet, StepExecutionListener 
     }
 
     private Stream<FichePersonnageCategorie> mapCategory(FichePersonnageCategorie categorie) {
-        List<DataMapping> dataMapping = mappingRepository.findByFromCategory(categorie.categoryName());
-        if (dataMapping.isEmpty()) {
+        List<DataMappingFrench> dataMappingFrenches = mappingFrenchRepository.findByEnglishCategory(categorie.categoryName());
+        if (dataMappingFrenches.isEmpty()) {
             return Stream.of(categorie);
         }
-        return dataMapping.stream().map(data -> {
-            String value = categorie.categoryValue();
-            if ("CLASS  LEVEL".equals(data.getFromCategory())) {
-                value = StringUtils.split(value, " ")[1];
-            }
-            return new FichePersonnageCategorie(data.getToCategory(), value, data.isCheckBox());
-        });
+        return dataMappingFrenches.stream()
+                                  .map(dataMappingFrench -> new FichePersonnageCategorie(dataMappingFrench.getFrenchCategory(), categorie.categoryValue(),
+                                                                                         dataMappingFrench.isCheckBox()));
     }
 
     @Override
